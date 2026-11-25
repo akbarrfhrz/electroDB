@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   ARTICLES,
   DEFAULT_COMPONENTS,
+  appendSeedExpansion,
   calculate,
   computeStats,
   exportCsv,
@@ -10,11 +11,30 @@ import {
   normalizeComponent,
 } from '../lib/electrodb.js';
 
-test('default catalog retains its 10 seeded components and their full specifications', () => {
-  assert.equal(DEFAULT_COMPONENTS.length, 10);
+test('default catalog includes the expanded seed list and its full specifications', () => {
+  assert.equal(DEFAULT_COMPONENTS.length, 80);
   assert.equal(DEFAULT_COMPONENTS[0].code, 'RES-10K-025');
   assert.equal(DEFAULT_COMPONENTS[0].pin_count, 2);
-  assert.equal(DEFAULT_COMPONENTS[9].code, 'MCU-ESP32-WROOM');
+  assert.equal(DEFAULT_COMPONENTS[79].code, 'MOD-RELAY-5V');
+});
+
+test('seed migration preserves existing records and avoids duplicate codes and IDs', () => {
+  const customizedSeed = {
+    ...DEFAULT_COMPONENTS[10],
+    id: 50,
+    name: 'Customized module',
+  };
+  const legacyCatalog = [...DEFAULT_COMPONENTS.slice(0, 10), customizedSeed];
+  const migrated = appendSeedExpansion(legacyCatalog, 11);
+
+  assert.equal(migrated.components.length, 80);
+  assert.equal(migrated.components.find((component) => component.id === 50).name, 'Customized module');
+  assert.equal(
+    migrated.components.filter((component) => component.code === customizedSeed.code).length,
+    1,
+  );
+  assert.equal(new Set(migrated.components.map((component) => component.id)).size, 80);
+  assert.ok(migrated.nextId > Math.max(...migrated.components.map((component) => component.id)));
 });
 
 test('component normalization requires identifiers and fills optional specifications', () => {
@@ -30,7 +50,7 @@ test('catalog filtering and stats use the same category and search semantics', (
   const matches = filterComponents(DEFAULT_COMPONENTS, 'esp32', 'Sensor & Modul');
   assert.equal(matches.length, 1);
   assert.equal(matches[0].id, 10);
-  assert.equal(computeStats(DEFAULT_COMPONENTS).total_components, 10);
+  assert.equal(computeStats(DEFAULT_COMPONENTS).total_components, 80);
   assert.equal(computeStats(DEFAULT_COMPONENTS).total_datasheets, 10);
 });
 

@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('btnResetDb').addEventListener('click', async () => {
-    if (!confirm('Reset katalog referensi ke 10 komponen bawaan?')) return;
+    if (!confirm('Reset katalog referensi ke daftar komponen bawaan?')) return;
     try {
       await ElectroAPI.resetDatabase();
       showToast('Database referensi dikembalikan ke data awal');

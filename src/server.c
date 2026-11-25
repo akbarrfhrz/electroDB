@@ -490,7 +490,7 @@ static void handle_client(socket_t client, Component list[], int *count, int *ne
 
     } else if (strcmp(method, "POST") == 0 && strcmp(path, "/api/reset") == 0) {
         storage_reset_default(list, count, next_id);
-        send_json(client, "200 OK", "{\"message\":\"Database referensi dikembalikan ke 10 komponen bawaan\"}");
+        send_json(client, "200 OK", "{\"message\":\"Database referensi dikembalikan ke komponen bawaan\"}");
 
     } else if (strcmp(method, "GET") == 0 && strcmp(path, "/api/export/csv") == 0) {
         char *csv = (char *)malloc(RESP_BUF_SIZE);

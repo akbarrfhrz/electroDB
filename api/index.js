@@ -3,6 +3,8 @@ import { neon } from '@neondatabase/serverless';
 import {
   ARTICLES,
   DEFAULT_COMPONENTS,
+  SEED_VERSION,
+  appendSeedExpansion,
   calculate,
   computeStats,
   exportCsv,
@@ -34,6 +36,37 @@ function getDatabase() {
   return sql;
 }
 
+async function migrateSeedExpansion(client) {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const rows = await client`
+      SELECT version, next_id, components, seed_version
+      FROM electrodb_state
+      WHERE id = 1
+    `;
+    if (!rows.length) throw new Error('Baris katalog ElectroDB tidak ditemukan setelah inisialisasi.');
+    const row = rows[0];
+    if (Number(row.seed_version) >= SEED_VERSION) return;
+
+    const currentComponents = typeof row.components === 'string'
+      ? JSON.parse(row.components)
+      : row.components;
+    const merged = appendSeedExpansion(currentComponents, Number(row.next_id));
+    const updated = await client`
+      UPDATE electrodb_state
+      SET version = version + 1,
+          next_id = ${merged.nextId},
+          components = ${JSON.stringify(merged.components)}::jsonb,
+          seed_version = ${SEED_VERSION}
+      WHERE id = 1
+        AND version = ${Number(row.version)}
+        AND seed_version < ${SEED_VERSION}
+      RETURNING version
+    `;
+    if (updated.length) return;
+  }
+  throw new Error('Gagal memperbarui katalog bawaan setelah beberapa percobaan.');
+}
+
 async function ensureDatabase() {
   const client = getDatabase();
   if (!schemaPromise) {
@@ -43,14 +76,21 @@ async function ensureDatabase() {
           id smallint PRIMARY KEY CHECK (id = 1),
           version bigint NOT NULL,
           next_id integer NOT NULL,
-          components jsonb NOT NULL
+          components jsonb NOT NULL,
+          seed_version integer NOT NULL DEFAULT 2
         )
       `;
       await client`
-        INSERT INTO electrodb_state (id, version, next_id, components)
-        VALUES (1, 0, 11, ${JSON.stringify(DEFAULT_COMPONENTS)}::jsonb)
+        ALTER TABLE electrodb_state
+        ADD COLUMN IF NOT EXISTS seed_version integer NOT NULL DEFAULT 1
+      `;
+      await client`
+        INSERT INTO electrodb_state (id, version, next_id, components, seed_version)
+        VALUES (1, 0, ${DEFAULT_COMPONENTS.length + 1},
+                ${JSON.stringify(DEFAULT_COMPONENTS)}::jsonb, ${SEED_VERSION})
         ON CONFLICT (id) DO NOTHING
       `;
+      await migrateSeedExpansion(client);
     })();
   }
 
@@ -281,7 +321,7 @@ async function handle(request) {
       return {
         changed: true,
         status: 200,
-        body: { message: 'Database referensi dikembalikan ke 10 komponen bawaan' },
+        body: { message: 'Database referensi dikembalikan ke komponen bawaan' },
       };
     });
     return jsonResponse(result.body, result.status);

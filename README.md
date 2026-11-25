@@ -58,7 +58,7 @@ Proyek menyediakan frontend statis di `public/` dan API serverless Node.js di `a
      [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
      [Convert]::ToBase64String($bytes)
      ```
-5. Deploy. Pada permintaan katalog pertama, API membuat tabel dan mengisi 10 komponen bawaan secara otomatis.
+5. Deploy. Pada permintaan katalog pertama, API membuat tabel dan mengisi 80 komponen bawaan secara otomatis. Database yang sebelumnya sudah berisi 10 komponen akan ditambah tanpa menghapus data yang ada.
 6. Buka URL deployment Vercel. Saat pertama kali menambah, mengedit, menghapus, atau mereset katalog, browser akan meminta kunci admin dari `ELECTRODB_ADMIN_TOKEN`.
 
 Jangan masukkan nilai rahasia ke Git atau ke kode frontend. Endpoint baca, kalkulator, dan ensiklopedia bersifat publik; operasi perubahan katalog dilindungi kunci admin.
