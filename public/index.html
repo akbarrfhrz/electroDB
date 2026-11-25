@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ElectroDB — Referensi Komponen, Kalkulator & Pengetahuan Elektronika</title>
+  <link rel="stylesheet" href="/css/variables.css" />
+  <link rel="stylesheet" href="/css/layout.css" />
+  <link rel="stylesheet" href="/css/components.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon">ELDB</div>
+      <div>
+        <h1>ElectroDB <span class="badge">C Backend + Reference Hub</span></h1>
+        <p>Kelompok 7 • D4 Teknologi Rekayasa Otomasi — Universitas Diponegoro</p>
+      </div>
+    </div>
+
+    <nav class="nav-tabs" aria-label="Menu Utama">
+      <button class="nav-tab active" data-tab="catalogTab">Katalog & Spesifikasi</button>
+      <button class="nav-tab" data-tab="calculatorTab">Kalkulator Elektronika</button>
+      <button class="nav-tab" data-tab="knowledgeTab">Pengetahuan Elektronika</button>
+    </nav>
+
+    <div class="topbar-actions">
+      <a href="/api/export/csv" class="btn btn-secondary" download="electrodb_referensi.csv">Export CSV</a>
+      <button id="btnResetDb" class="btn btn-secondary" type="button">Reset Default</button>
+      <button id="btnOpenAdd" class="btn btn-primary" type="button">+ Kontribusi Komponen</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Ringkasan Statistik Referensi -->
+    <section class="kpi-grid">
+      <div class="card kpi-card">
+        <span class="kpi-label">Total Referensi Komponen</span>
+        <span class="kpi-value" id="kpiTotalComp">0</span>
+        <span class="kpi-sub">Disimpan di struct array C</span>
+      </div>
+      <div class="card kpi-card">
+        <span class="kpi-label">Datasheet Terdokumentasi</span>
+        <span class="kpi-value" id="kpiDatasheets">0</span>
+        <span class="kpi-sub">Tautan dokumentasi pabrikan</span>
+      </div>
+      <div class="card kpi-card">
+        <span class="kpi-label">Kategori Terbanyak</span>
+        <span class="kpi-value" id="kpiTopCat">-</span>
+        <span class="kpi-sub" id="kpiTopCatSub">File: data/components.dat</span>
+      </div>
+      <div class="card kpi-card">
+        <span class="kpi-label">Kalkulator & Modul Ilmu</span>
+        <span class="kpi-value">8 Rumus</span>
+        <span class="kpi-sub">Diproses langsung oleh C11</span>
+      </div>
+    </section>
+
+    <!-- TAB 1: KATALOG REFERENSI KOMPONEN (TAMPILAN RINGKAS -> KLIK DETAIL TERKECIL) -->
+    <section id="catalogTab" class="tab-panel active">
+      <div class="filter-bar">
+        <input type="text" id="searchInput" class="input" placeholder="Cari kode (NE555, IRFZ44N), nilai (10 kOhm), MPN, fungsi rangkaian, atau toko..." />
+        <select id="categoryFilter" class="select">
+          <option value="Semua">Semua Kategori</option>
+          <option value="Resistor">Resistor</option>
+          <option value="Kapasitor">Kapasitor</option>
+          <option value="Dioda">Dioda</option>
+          <option value="Transistor">Transistor</option>
+          <option value="IC">IC</option>
+          <option value="Sensor & Modul">Sensor & Modul</option>
+        </select>
+      </div>
+
+      <div class="chip-row" id="categoryChips"></div>
+      <div class="catalog-grid" id="catalogGrid"></div>
+    </section>
+
+    <!-- TAB 2: KALKULATOR NILAI-NILAI ELEKTRONIKA -->
+    <section id="calculatorTab" class="tab-panel">
+      <div class="calc-layout">
+        <div class="card">
+          <h2 style="font-size: 1.08rem; margin-bottom: 0.35rem;">Kalkulator Perancangan Elektronika (Backend C)</h2>
+          <p style="font-size: 0.83rem; color: var(--text-secondary); margin-bottom: 1rem;">
+            Pilih rumus yang dibutuhkan. Seluruh perhitungan serta rekomendasi nilai standar E24 diproses di modul <code>src/calculator.c</code>.
+          </p>
+
+          <form id="calcForm">
+            <div class="form-group">
+              <label for="calcMode">Jenis Perhitungan</label>
+              <select id="calcMode" class="select">
+                <option value="LED_RES">1. Resistor Pembatas Arus LED — R = (Vs - Vf) / If</option>
+                <option value="DIVIDER">2. Pembagi Tegangan (Voltage Divider) — Vout</option>
+                <option value="OHM_I">3. Hukum Ohm: Hitung Arus (I = V / R) & Daya (P)</option>
+                <option value="OHM_V">4. Hukum Ohm: Hitung Tegangan (V = I * R) & Daya (P)</option>
+                <option value="OHM_R">5. Hukum Ohm: Hitung Hambatan (R = V / I) & E24</option>
+                <option value="SER_PAR">6. Resistor Seri & Paralel (R1, R2)</option>
+                <option value="CAP_SER_P">7. Kapasitor Seri & Paralel (C1, C2 dalam uF)</option>
+                <option value="NE555">8. Timer IC NE555 Mode Astable (Frekuensi & Duty Cycle)</option>
+              </select>
+            </div>
+
+            <div id="dynamicCalcInputs"></div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
+              Hitung Nilai Sekarang
+            </button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2 style="font-size: 1.08rem; margin-bottom: 0.75rem;">Hasil Perhitungan & Rekomendasi Komponen</h2>
+          <div id="calcOutput" class="calc-result-box">
+            <span style="color: var(--text-secondary);">Masukkan parameter rangkaian di sebelah kiri, lalu klik <strong>Hitung Nilai Sekarang</strong>.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: INFORMASI & PENGETAHUAN ELEKTRONIKA -->
+    <section id="knowledgeTab" class="tab-panel">
+      <div style="margin-bottom: 1rem;">
+        <h2 style="font-size: 1.15rem;">Ensiklopedia & Panduan Praktis Elektronika</h2>
+        <p style="font-size: 0.85rem; color: var(--text-secondary);">
+          Referensi dasar pembacaan kode komponen, datasheet, proteksi rangkaian, dan substitusi komponen (disajikan dari <code>src/knowledge.c</code>).
+        </p>
+      </div>
+      <div class="knowledge-grid" id="knowledgeGrid"></div>
+    </section>
+  </main>
+
+  <!-- MODAL INSPEKTOR DETAIL SPESIFIKASI TERKECIL -->
+  <div class="modal-backdrop" id="detailModal">
+    <div class="modal">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem;">
+        <div>
+          <span class="comp-code" id="detCode"></span>
+          <h3 id="detName" style="font-size: 1.18rem; margin-top: 0.15rem;"></h3>
+          <div id="detSubCat" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.15rem;"></div>
+        </div>
+        <span class="badge" id="detCategory"></span>
+      </div>
+
+      <div id="detGranularBody"></div>
+
+      <div class="modal-footer" style="justify-content: space-between;">
+        <a id="detDatasheetLink" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-emerald">
+          Buka Datasheet PDF / Dokumentasi
+        </a>
+        <div style="display: flex; gap: 0.5rem;">
+          <button type="button" id="btnEditFromDetail" class="btn btn-secondary">Edit Referensi</button>
+          <button type="button" id="btnCloseDetail" class="btn btn-primary">Tutup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL TAMBAH / EDIT REFERENSI KOMPONEN (RINGKAS + SPESIFIKASI TERKECIL) -->
+  <div class="modal-backdrop" id="formModal">
+    <div class="modal">
+      <h3 id="formModalTitle" style="font-size: 1.12rem;">Kontribusi Referensi Komponen Baru</h3>
+      <form id="componentForm">
+        <input type="hidden" id="compId" />
+
+        <div class="modal-grid">
+          <div class="form-group">
+            <label for="compCode">Kode / Part Internal *</label>
+            <input type="text" id="compCode" class="input" required placeholder="Contoh: IC-ATMEGA328P" />
+          </div>
+          <div class="form-group">
+            <label for="compCategory">Kategori *</label>
+            <select id="compCategory" class="select">
+              <option value="Resistor">Resistor</option>
+              <option value="Kapasitor">Kapasitor</option>
+              <option value="Dioda">Dioda</option>
+              <option value="Transistor">Transistor</option>
+              <option value="IC">IC</option>
+              <option value="Sensor & Modul">Sensor & Modul</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label for="compName">Nama Komponen *</label>
+            <input type="text" id="compName" class="input" required placeholder="Contoh: Mikrokontroler ATmega328P-PU 8-Bit AVR" />
+          </div>
+          <div class="form-group">
+            <label for="compNominal">Nilai Nominal Utama *</label>
+            <input type="text" id="compNominal" class="input" required placeholder="Contoh: 10 kOhm / 100 uF / 5V 16MHz" />
+          </div>
+          <div class="form-group">
+            <label for="compPackage">Kemasan / Footprint PCB</label>
+            <input type="text" id="compPackage" class="input" placeholder="PDIP-28 / TO-220 / Axial 0207" />
+          </div>
+          <div class="form-group full">
+            <label for="compFunction">Fungsi & Prinsip Kerja Utama *</label>
+            <textarea id="compFunction" class="textarea" required placeholder="Jelaskan kegunaan utama komponen ini pada rangkaian..."></textarea>
+          </div>
+        </div>
+
+        <details class="form-accordion" open>
+          <summary>Spesifikasi Elektrikal & Fisik Terkecil (Opsional — Otomatis '-' jika kosong)</summary>
+          <div class="modal-grid">
+            <div class="form-group">
+              <label for="compSubCategory">Sub-Kategori Teknis</label>
+              <input type="text" id="compSubCategory" class="input" placeholder="8-Bit AVR RISC MCU" />
+            </div>
+            <div class="form-group">
+              <label for="compMpn">Manufacturer Part Number (MPN)</label>
+              <input type="text" id="compMpn" class="input" placeholder="ATMEGA328P-PU" />
+            </div>
+            <div class="form-group">
+              <label for="compManufacturer">Produsen / Pabrikan</label>
+              <input type="text" id="compManufacturer" class="input" placeholder="Microchip Technology" />
+            </div>
+            <div class="form-group">
+              <label for="compTolerance">Toleransi / Akurasi</label>
+              <input type="text" id="compTolerance" class="input" placeholder="+-1% / +-5% / ADC 10-bit" />
+            </div>
+            <div class="form-group">
+              <label for="compVoltage">Rating Tegangan Maksimum</label>
+              <input type="text" id="compVoltage" class="input" placeholder="1.8V - 5.5V DC" />
+            </div>
+            <div class="form-group">
+              <label for="compCurrent">Rating Arus Maksimum</label>
+              <input type="text" id="compCurrent" class="input" placeholder="40 mA per pin I/O" />
+            </div>
+            <div class="form-group">
+              <label for="compPower">Disipasi Daya / ESR Maksimum</label>
+              <input type="text" id="compPower" class="input" placeholder="0.25 W / 500 mW" />
+            </div>
+            <div class="form-group">
+              <label for="compTemp">Rentang Suhu Operasi</label>
+              <input type="text" id="compTemp" class="input" placeholder="-40 C s.d. +85 C" />
+            </div>
+            <div class="form-group">
+              <label for="compDimensions">Dimensi Fisik (mm)</label>
+              <input type="text" id="compDimensions" class="input" placeholder="34.8 mm x 7.5 mm (Pitch 2.54 mm)" />
+            </div>
+            <div class="form-group">
+              <label for="compPinCount">Jumlah Pin / Kaki</label>
+              <input type="number" id="compPinCount" class="input" min="0" max="1024" value="2" />
+            </div>
+            <div class="form-group full">
+              <label for="compPinout">Konfigurasi Pinout Lengkap</label>
+              <input type="text" id="compPinout" class="input" placeholder="Pin 1: RESET | Pin 7: VCC | Pin 8: GND ..." />
+            </div>
+            <div class="form-group full">
+              <label for="compApplication">Contoh Aplikasi Rangkaian</label>
+              <input type="text" id="compApplication" class="input" placeholder="Sistem minimum Arduino, kontrol sensor & aktuator..." />
+            </div>
+            <div class="form-group full">
+              <label for="compNotes">Catatan Polaritas & Tips Pemasangan</label>
+              <textarea id="compNotes" class="textarea" placeholder="Tips penggunaan, derating daya, atau peringatan polaritas..."></textarea>
+            </div>
+            <div class="form-group">
+              <label for="compPrice">Estimasi Harga Pasar</label>
+              <input type="text" id="compPrice" class="input" placeholder="Rp 25.000 - Rp 38.000 / pcs" />
+            </div>
+            <div class="form-group">
+              <label for="compDatasheet">Link Datasheet PDF Resmi (URL)</label>
+              <input type="url" id="compDatasheet" class="input" placeholder="https://..." />
+            </div>
+            <div class="form-group full">
+              <label for="compWhereToBuy">Rekomendasi Tempat Membeli (Lokal / Online)</label>
+              <input type="text" id="compWhereToBuy" class="input" placeholder="Candi Elektronik Semarang, Tokopedia, Shopee, DigiKey" />
+            </div>
+          </div>
+        </details>
+
+        <div class="modal-footer">
+          <button type="button" id="btnCancelForm" class="btn btn-secondary">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan ke Database C</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/catalog.js"></script>
+  <script src="/js/calculator.js"></script>
+  <script src="/js/knowledge.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

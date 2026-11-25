@@ -1,0 +1,6 @@
+electrodb
+electrodb.exe
+src/*.o
+data/components.dat
+.vscode/
+.DS_Store
