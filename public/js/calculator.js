@@ -1,5 +1,5 @@
 /**
- * Modul UI Kalkulator Rangkaian Elektronika (terhubung ke src/calculator.c)
+ * Modul UI Kalkulator Rangkaian Elektronika
  */
 const CALC_SCHEMAS = {
   LED_RES: [

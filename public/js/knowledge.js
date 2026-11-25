@@ -1,5 +1,5 @@
 /**
- * Modul UI Ensiklopedia & Pengetahuan Elektronika (dari src/knowledge.c)
+ * Modul UI Ensiklopedia & Pengetahuan Elektronika
  */
 async function loadKnowledgeArticles() {
   const grid = document.getElementById('knowledgeGrid');

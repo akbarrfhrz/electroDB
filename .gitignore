@@ -1,6 +1,9 @@
 electrodb
 electrodb.exe
+node_modules/
 src/*.o
 data/components.dat
 .vscode/
 .DS_Store
+.env*
+!.env.example

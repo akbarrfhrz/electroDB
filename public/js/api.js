@@ -1,18 +1,35 @@
-/**
- * Modul REST API Client menuju Backend Bahasa C (src/server.c)
- */
+let adminToken = '';
+
+async function adminFetch(url, options = {}) {
+  const headers = new Headers(options.headers || {});
+  if (adminToken) headers.set('Authorization', `Bearer ${adminToken}`);
+
+  let response = await fetch(url, { ...options, headers });
+  if (response.status !== 401) return response;
+
+  adminToken = '';
+  const token = window.prompt('Masukkan kunci admin untuk mengubah katalog:');
+  if (!token) throw new Error('Aksi dibatalkan karena kunci admin tidak diberikan.');
+
+  adminToken = token;
+  headers.set('Authorization', `Bearer ${adminToken}`);
+  response = await fetch(url, { ...options, headers });
+  if (response.status === 401) adminToken = '';
+  return response;
+}
+
 const ElectroAPI = {
   async fetchComponents(query = '', category = 'Semua') {
     const params = new URLSearchParams();
     if (query) params.set('q', query);
     if (category && category !== 'Semua') params.set('category', category);
     const res = await fetch(`/api/components?${params.toString()}`);
-    if (!res.ok) throw new Error('Gagal memuat katalog referensi dari server C');
+    if (!res.ok) throw new Error('Gagal memuat katalog referensi');
     return res.json();
   },
 
   async createComponent(payload) {
-    const res = await fetch('/api/components', {
+    const res = await adminFetch('/api/components', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -23,7 +40,7 @@ const ElectroAPI = {
   },
 
   async updateComponent(id, payload) {
-    const res = await fetch(`/api/components/${id}`, {
+    const res = await adminFetch(`/api/components/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -34,7 +51,7 @@ const ElectroAPI = {
   },
 
   async deleteComponent(id) {
-    const res = await fetch(`/api/components/${id}`, {
+    const res = await adminFetch(`/api/components/${id}`, {
       method: 'DELETE',
     });
     const data = await res.json();
@@ -68,8 +85,9 @@ const ElectroAPI = {
   },
 
   async resetDatabase() {
-    const res = await fetch('/api/reset', { method: 'POST' });
-    if (!res.ok) throw new Error('Gagal mereset database');
-    return res.json();
+    const res = await adminFetch('/api/reset', { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Gagal mereset database');
+    return data;
   },
 };

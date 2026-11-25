@@ -13,7 +13,7 @@
     <div class="brand">
       <div class="brand-icon">ELDB</div>
       <div>
-        <h1>ElectroDB <span class="badge">C Backend + Reference Hub</span></h1>
+        <h1>ElectroDB <span class="badge">Reference Hub</span></h1>
         <p>Kelompok 7 • D4 Teknologi Rekayasa Otomasi — Universitas Diponegoro</p>
       </div>
     </div>
@@ -37,7 +37,7 @@
       <div class="card kpi-card">
         <span class="kpi-label">Total Referensi Komponen</span>
         <span class="kpi-value" id="kpiTotalComp">0</span>
-        <span class="kpi-sub">Disimpan di struct array C</span>
+        <span class="kpi-sub">Disimpan di katalog referensi</span>
       </div>
       <div class="card kpi-card">
         <span class="kpi-label">Datasheet Terdokumentasi</span>
@@ -47,7 +47,7 @@
       <div class="card kpi-card">
         <span class="kpi-label">Kategori Terbanyak</span>
         <span class="kpi-value" id="kpiTopCat">-</span>
-        <span class="kpi-sub" id="kpiTopCatSub">File: data/components.dat</span>
+        <span class="kpi-sub" id="kpiTopCatSub">Kategori komponen</span>
       </div>
       <div class="card kpi-card">
         <span class="kpi-label">Kalkulator & Modul Ilmu</span>
@@ -79,9 +79,9 @@
     <section id="calculatorTab" class="tab-panel">
       <div class="calc-layout">
         <div class="card">
-          <h2 style="font-size: 1.08rem; margin-bottom: 0.35rem;">Kalkulator Perancangan Elektronika (Backend C)</h2>
+          <h2 style="font-size: 1.08rem; margin-bottom: 0.35rem;">Kalkulator Perancangan Elektronika</h2>
           <p style="font-size: 0.83rem; color: var(--text-secondary); margin-bottom: 1rem;">
-            Pilih rumus yang dibutuhkan. Seluruh perhitungan serta rekomendasi nilai standar E24 diproses di modul <code>src/calculator.c</code>.
+            Pilih rumus yang dibutuhkan untuk menghitung nilai rangkaian dan rekomendasi resistor standar E24.
           </p>
 
           <form id="calcForm">
@@ -121,7 +121,7 @@
       <div style="margin-bottom: 1rem;">
         <h2 style="font-size: 1.15rem;">Ensiklopedia & Panduan Praktis Elektronika</h2>
         <p style="font-size: 0.85rem; color: var(--text-secondary);">
-          Referensi dasar pembacaan kode komponen, datasheet, proteksi rangkaian, dan substitusi komponen (disajikan dari <code>src/knowledge.c</code>).
+          Referensi dasar pembacaan kode komponen, datasheet, proteksi rangkaian, dan substitusi komponen.
         </p>
       </div>
       <div class="knowledge-grid" id="knowledgeGrid"></div>
@@ -267,7 +267,7 @@
 
         <div class="modal-footer">
           <button type="button" id="btnCancelForm" class="btn btn-secondary">Batal</button>
-          <button type="submit" class="btn btn-primary">Simpan ke Database C</button>
+          <button type="submit" class="btn btn-primary">Simpan Referensi</button>
         </div>
       </form>
     </div>

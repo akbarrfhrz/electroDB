@@ -29,7 +29,7 @@ function renderStatsAndChips(stats, activeCategory) {
   document.getElementById('kpiDatasheets').textContent = stats.total_datasheets;
   document.getElementById('kpiTopCat').textContent = stats.top_category;
   document.getElementById('kpiTopCatSub').textContent =
-    stats.top_category_count > 0 ? `${stats.top_category_count} referensi komponen` : 'File: data/components.dat';
+    stats.top_category_count > 0 ? `${stats.top_category_count} referensi komponen` : 'Belum ada kategori';
 
   const chipsContainer = document.getElementById('categoryChips');
   const cats = Object.entries(stats.categories || {});
@@ -93,7 +93,7 @@ function closeFormModal() {
 }
 
 async function handleDeleteComponent(id, name) {
-  if (!confirm(`Hapus referensi "${name}" dari database C?`)) return;
+  if (!confirm(`Hapus referensi "${name}" dari katalog?`)) return;
   try {
     await ElectroAPI.deleteComponent(id);
     showToast(`Referensi "${name}" berhasil dihapus`);
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('btnResetDb').addEventListener('click', async () => {
-    if (!confirm('Reset database referensi ke 10 komponen bawaan (menggunakan remove() di backend C)?')) return;
+    if (!confirm('Reset katalog referensi ke 10 komponen bawaan?')) return;
     try {
       await ElectroAPI.resetDatabase();
       showToast('Database referensi dikembalikan ke data awal');
@@ -170,10 +170,10 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       if (id) {
         await ElectroAPI.updateComponent(id, payload);
-        showToast('Perubahan referensi disimpan ke data/components.dat');
+        showToast('Perubahan referensi berhasil disimpan');
       } else {
         await ElectroAPI.createComponent(payload);
-        showToast('Referensi baru berhasil ditambahkan ke data/components.dat');
+        showToast('Referensi baru berhasil ditambahkan');
       }
       closeFormModal();
       refreshDashboard();

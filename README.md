@@ -42,3 +42,23 @@ make
 gcc -Wall -Wextra -std=c11 -O2 -Iinclude src/main.c src/storage.c src/database.c src/calculator.c src/knowledge.c src/cli.c src/server.c -o electrodb.exe -lws2_32
 .\electrodb.exe
 ```
+
+## Deploy ke Vercel
+
+Proyek menyediakan frontend statis di `public/` dan API serverless Node.js di `api/`. Backend C tetap dapat dijalankan secara lokal seperti petunjuk di atas; saat dideploy ke Vercel, API menggunakan implementasi serverless dan database Neon agar data katalog tersimpan permanen.
+
+1. Push repository ini ke GitHub.
+2. Buat database PostgreSQL di [Neon](https://neon.tech/) dan salin connection string `DATABASE_URL`.
+3. Import repository GitHub tersebut di Vercel. Gunakan preset **Other** jika diminta.
+4. Tambahkan environment variables berikut di pengaturan proyek Vercel untuk Production (dan Preview bila diperlukan):
+   - `DATABASE_URL`: connection string PostgreSQL dari Neon.
+   - `ELECTRODB_ADMIN_TOKEN`: rahasia acak minimal 32 karakter. Buat token lokal, misalnya di PowerShell:
+     ```powershell
+     $bytes = New-Object byte[] 32
+     [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+     [Convert]::ToBase64String($bytes)
+     ```
+5. Deploy. Pada permintaan katalog pertama, API membuat tabel dan mengisi 10 komponen bawaan secara otomatis.
+6. Buka URL deployment Vercel. Saat pertama kali menambah, mengedit, menghapus, atau mereset katalog, browser akan meminta kunci admin dari `ELECTRODB_ADMIN_TOKEN`.
+
+Jangan masukkan nilai rahasia ke Git atau ke kode frontend. Endpoint baca, kalkulator, dan ensiklopedia bersifat publik; operasi perubahan katalog dilindungi kunci admin.
